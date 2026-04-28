@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultRazorGenerateItems>false</EnableDefaultRazorGenerateItems>
+    <EnableDefaultRazorComponentItems>false</EnableDefaultRazorComponentItems>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Include="$([System.IO.Directory]::GetFiles('$(MSBuildProjectDirectory)', '*.cs', System.IO.SearchOption.AllDirectories))"
+             Exclude="$(MSBuildProjectDirectory)/bin/**;$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/tests/**" />
+    <Content Include="$([System.IO.Directory]::GetFiles('$(MSBuildProjectDirectory)', '*.json', System.IO.SearchOption.TopDirectoryOnly))"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.*" />
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageReference Include="Asp.Versioning.Http" Version="8.1.1" />
+    <PackageReference Include="Polly.Core" Version="8.6.6" />
+    <PackageReference Include="Polly.Extensions" Version="8.6.6" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
+    <PackageReference Include="OpenTelemetry" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+  </ItemGroup>
+
+</Project>

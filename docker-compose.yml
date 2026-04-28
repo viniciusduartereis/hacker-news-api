@@ -1,0 +1,65 @@
+services:
+
+  redis:
+    image: redis:latest
+    container_name: hacker-news-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - hacker-news-network
+
+
+  api:
+    build:
+      context: ./src/HackerNewsApi/
+      dockerfile: Dockerfile
+    container_name: hacker-news-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=5005
+      - ConnectionStrings__RedisConnectionString=redis:6379
+      - AppSettings__EnableHttpsRedirection=false
+      - AppSettings__DataProtection__KeysPath=/var/lib/aspnet-dpkeys
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://hacker-news-aspire-dashboard:18889
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_SERVICE_NAME=hacker-news-api
+      - TELEMETRY_EXPORTER=otlp
+    ports:
+      - "5005:5005"
+    depends_on:
+      redis:
+        condition: service_healthy
+      hacker-news-aspire-dashboard:        
+        condition: service_started
+    volumes:
+      - api-dpkeys:/var/lib/aspnet-dpkeys
+    networks:
+      - hacker-news-network
+
+  hacker-news-aspire-dashboard:
+      image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+      container_name: hacker-news-aspire-dashboard
+      restart: unless-stopped
+      environment:
+        DASHBOARD__FRONTEND__AUTHMODE: Unsecured       
+        DASHBOARD__OTLP__AUTHMODE: Unsecured
+      ports:
+        - "18888:18888"   # dashboard UI
+        - "4317:18889"    # OTLP gRPC (seus serviços enviam aqui)
+        - "4318:18890"    # OTLP HTTP (opcional)
+      networks:
+        - hacker-news-network
+
+volumes:
+  api-dpkeys:
+    driver: local
+
+networks:
+  hacker-news-network:
+    driver: bridge
