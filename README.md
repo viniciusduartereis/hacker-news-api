@@ -23,6 +23,7 @@ The API is designed to avoid hammering Hacker News by using distributed caching,
 | .NET SDK | 10.0+ |
 | Docker | 24+ |
 | Docker Compose | v2+ |
+| k6 | Latest stable, optional for local load tests |
 
 ## Running
 
@@ -312,9 +313,15 @@ src/HackerNewsApi/
 
 tests/
 └── HackerNewsApi.Tests/
+    ├── Contract/
     ├── Integration/
     ├── Unit/
-    └── Fakes/
+    ├── Fakes/
+    └── Fixtures/
+
+perf/
+└── k6/
+    └── hackernews-smoke.js
 ```
 
 ## Verification
@@ -322,22 +329,34 @@ tests/
 Build the API:
 
 ```bash
- dotnet build src/HackerNewsApi/HackerNewsApi.csproj
+dotnet build src/HackerNewsApi/HackerNewsApi.csproj
 ```
 
 Restore and run tests:
 
 ```bash
- dotnet restore tests/HackerNewsApi.Tests/HackerNewsApi.Tests.csproj
- dotnet test tests/HackerNewsApi.Tests/HackerNewsApi.Tests.csproj
+dotnet restore tests/HackerNewsApi.Tests/HackerNewsApi.Tests.csproj
+dotnet test tests/HackerNewsApi.Tests/HackerNewsApi.Tests.csproj
 ```
+
+The test project includes unit tests, endpoint integration tests, and contract tests against recorded Hacker News API fixtures under `tests/HackerNewsApi.Tests/Fixtures/HackerNews`.
 
 Run a local k6 smoke benchmark:
 
 ```bash
 docker compose up --build
-BASE_URL=http://localhost:5005 VUS=20 DURATION=1m k6 run perf/k6/hackernews-smoke.js
+BASE_URL=http://localhost:5005 RATE=10 DURATION=1m k6 run perf/k6/hackernews-smoke.js
 ```
+
+The k6 script exercises the original best-`n` endpoint and the paginated `beststories`, `topstories`, and `newstories` feeds. Each k6 iteration performs 4 requests, so the smoke default uses `RATE=10` iterations/minute to stay below the API rate limit of 60 requests/minute per IP. It fails if more than 1% of requests fail or if p95 latency exceeds 1 second.
+
+To intentionally validate rate limiting under pressure, run:
+
+```bash
+BASE_URL=http://localhost:5005 RATE=120 DURATION=1m EXPECT_RATE_LIMITS=true k6 run perf/k6/hackernews-smoke.js
+```
+
+In that mode, `429 Too Many Requests` is treated as an expected response so the test validates that the limiter is protecting the API instead of reporting those responses as failures.
 
 ## Assumptions
 
