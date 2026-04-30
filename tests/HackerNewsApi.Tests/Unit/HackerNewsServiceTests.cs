@@ -3,6 +3,7 @@ using HackerNewsApi.Caching;
 using HackerNewsApi.Configurations;
 using HackerNewsApi.ExternalServices.HackerNews;
 using HackerNewsApi.ExternalServices.HackerNews.Contracts;
+using HackerNewsApi.Features.Stories.Caching;
 using HackerNewsApi.Features.Stories.Contracts;
 using HackerNewsApi.Features.Stories.Mapping;
 using HackerNewsApi.Features.Stories.Providers;

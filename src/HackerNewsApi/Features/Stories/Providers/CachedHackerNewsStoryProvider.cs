@@ -1,5 +1,6 @@
 using HackerNewsApi.Caching;
 using HackerNewsApi.ExternalServices.HackerNews;
+using HackerNewsApi.Features.Stories.Caching;
 using HackerNewsApi.Features.Stories.Contracts;
 using HackerNewsApi.Features.Stories.Mapping;
 using HackerNewsApi.Observability;

@@ -1,4 +1,4 @@
-using HackerNewsApi.Caching;
+using HackerNewsApi.Features.Stories.Caching;
 using HackerNewsApi.Features.Stories.Services;
 using HackerNewsApi.Features.Stories.Settings;
 using HackerNewsApi.Observability;

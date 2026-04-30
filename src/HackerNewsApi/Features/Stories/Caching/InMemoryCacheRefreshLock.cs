@@ -1,4 +1,4 @@
-namespace HackerNewsApi.Caching;
+namespace HackerNewsApi.Features.Stories.Caching;
 
 public sealed class InMemoryCacheRefreshLock : ICacheRefreshLock
 {

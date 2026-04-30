@@ -14,15 +14,7 @@ public static class RegisterContainer
         services.AddApplicationCacheResiliencePipelines();
 
         services.AddSingleton<IHackerNewsCache, DistributedHackerNewsCache>();
-        if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("RedisConnectionString")))
-        {
-            services.AddSingleton<ICacheRefreshLock, InMemoryCacheRefreshLock>();
-        }
-        else
-        {
-            services.AddSingleton<ICacheRefreshLock, RedisCacheRefreshLock>();
-        }
 
-        services.AddStoriesFeature();
+        services.AddStoriesFeature(configuration);
     }
 }

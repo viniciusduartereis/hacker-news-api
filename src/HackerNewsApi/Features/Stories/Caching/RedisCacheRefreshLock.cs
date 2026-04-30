@@ -1,6 +1,6 @@
 using StackExchange.Redis;
 
-namespace HackerNewsApi.Caching;
+namespace HackerNewsApi.Features.Stories.Caching;
 
 public sealed class RedisCacheRefreshLock : ICacheRefreshLock
 {
