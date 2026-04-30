@@ -99,19 +99,15 @@ public sealed class StoriesEndpointTests
 
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var root = document.RootElement;
-        root.GetProperty("statusCode").GetInt32().Should().Be(400);
-        root.GetProperty("message").GetString().Should().Be("Client Error");
+        root.GetProperty("status").GetInt32().Should().Be(400);
+        root.GetProperty("title").GetString().Should().Be("One or more validation errors occurred.");
 
-        var error = root.GetProperty("error");
-        error.GetProperty("message").GetString().Should().Be("Validation failed.");
-        error.GetProperty("errorKey").GetString().Should().Be("validation_failed");
-
-        error.GetProperty("errors")
-             .GetProperty(propertyName)
-             .EnumerateArray()
-             .Select(item => item.GetString())
-             .Should()
-             .Contain(message);
+        root.GetProperty("errors")
+            .GetProperty(propertyName)
+            .EnumerateArray()
+            .Select(item => item.GetString())
+            .Should()
+            .Contain(message);
     }
 
     private sealed class HackerNewsApiFactory : WebApplicationFactory<Program>

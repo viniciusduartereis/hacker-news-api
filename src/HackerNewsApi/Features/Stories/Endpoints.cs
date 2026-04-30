@@ -2,7 +2,6 @@ using FluentValidation;
 using FluentValidation.Results;
 using HackerNewsApi.Features.Stories.Contracts;
 using HackerNewsApi.Features.Stories.Services;
-using HackerNewsApi.ViewModels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -74,13 +73,7 @@ public static class Endpoints
                 group => group.Key,
                 group => group.Select(error => error.ErrorMessage).ToArray());
 
-        var errorKeys = validationResult.Errors
-            .GroupBy(error => error.PropertyName)
-            .ToDictionary(
-                group => group.Key,
-                group => group.Select(error => error.ErrorCode).ToArray());
-
-        return ApiResults.ValidationError(errors, errorKeys: errorKeys);
+        return Results.ValidationProblem(errors);
     }
 
     private static bool TryParseFeed(string feed, out HackerNewsStoryFeed storyFeed)

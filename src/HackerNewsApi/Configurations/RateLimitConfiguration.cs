@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.RateLimiting;
-using HackerNewsApi.ViewModels;
 
 namespace HackerNewsApi.Configurations
 {
@@ -16,15 +15,15 @@ namespace HackerNewsApi.Configurations
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
                 options.OnRejected = async (context, cancellationToken) =>
                 {
-                    var payload = new ResponseViewModel<object?>(
-                        StatusCodes.Status429TooManyRequests,
-                        new ErrorViewModel(
-                            "Too many requests. Please try again in a minute.",
-                            StatusCodes.Status429TooManyRequests,
-                            "TooManyRequests"));
-
                     context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-                    await context.HttpContext.Response.WriteAsJsonAsync(payload, cancellationToken);
+                    await context.HttpContext.Response.WriteAsJsonAsync(
+                        new
+                        {
+                            title = "Too Many Requests",
+                            status = StatusCodes.Status429TooManyRequests,
+                            detail = "Too many requests. Please try again in a minute."
+                        },
+                        cancellationToken);
                 };
 
                 options.AddPolicy("FixedWindow", context =>
