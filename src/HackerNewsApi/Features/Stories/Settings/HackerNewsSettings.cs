@@ -1,4 +1,4 @@
-namespace HackerNewsApi.Settings;
+namespace HackerNewsApi.Features.Stories.Settings;
 
 public class HackerNewsSettings
 {

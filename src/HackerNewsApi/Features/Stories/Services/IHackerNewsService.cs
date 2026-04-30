@@ -1,6 +1,6 @@
-using HackerNewsApi.Contracts;
+using HackerNewsApi.Features.Stories.Contracts;
 
-namespace HackerNewsApi.Services;
+namespace HackerNewsApi.Features.Stories.Services;
 
 public interface IHackerNewsService
 {

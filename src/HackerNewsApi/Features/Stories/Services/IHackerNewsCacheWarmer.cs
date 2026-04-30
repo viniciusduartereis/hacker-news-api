@@ -1,4 +1,4 @@
-namespace HackerNewsApi.Services;
+namespace HackerNewsApi.Features.Stories.Services;
 
 public interface IHackerNewsCacheWarmer
 {

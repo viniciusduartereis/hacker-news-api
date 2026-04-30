@@ -1,7 +1,6 @@
-using HackerNewsApi.BackgroundServices;
 using HackerNewsApi.Caching;
 using HackerNewsApi.Configurations;
-using HackerNewsApi.Services;
+using HackerNewsApi.Features.Stories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
@@ -24,9 +23,6 @@ public static class RegisterContainer
             services.AddSingleton<ICacheRefreshLock, RedisCacheRefreshLock>();
         }
 
-        services.AddScoped<HackerNewsService>();
-        services.AddScoped<IHackerNewsService>(provider => provider.GetRequiredService<HackerNewsService>());
-        services.AddScoped<IHackerNewsCacheWarmer>(provider => provider.GetRequiredService<HackerNewsService>());
-        services.AddHostedService<HackerNewsCacheRefreshService>();
+        services.AddStoriesFeature();
     }
 }

@@ -1,10 +1,10 @@
 using HackerNewsApi.Caching;
+using HackerNewsApi.Features.Stories.Services;
+using HackerNewsApi.Features.Stories.Settings;
 using HackerNewsApi.Observability;
-using HackerNewsApi.Services;
-using HackerNewsApi.Settings;
 using Microsoft.Extensions.Options;
 
-namespace HackerNewsApi.BackgroundServices;
+namespace HackerNewsApi.Features.Stories.BackgroundServices;
 
 public sealed class HackerNewsCacheRefreshService : BackgroundService
 {

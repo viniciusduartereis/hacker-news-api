@@ -1,4 +1,4 @@
-namespace HackerNewsApi.Contracts;
+namespace HackerNewsApi.ExternalServices.HackerNews.Contracts;
 
 /// <summary>
 /// Raw item response from the Hacker News API.

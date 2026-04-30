@@ -1,9 +1,13 @@
 using FluentAssertions;
 using HackerNewsApi.Caching;
 using HackerNewsApi.Configurations;
-using HackerNewsApi.Contracts;
-using HackerNewsApi.Services;
-using HackerNewsApi.Settings;
+using HackerNewsApi.ExternalServices.HackerNews;
+using HackerNewsApi.ExternalServices.HackerNews.Contracts;
+using HackerNewsApi.Features.Stories.Contracts;
+using HackerNewsApi.Features.Stories.Mapping;
+using HackerNewsApi.Features.Stories.Providers;
+using HackerNewsApi.Features.Stories.Services;
+using HackerNewsApi.Features.Stories.Settings;
 using HackerNewsApi.Tests.Fakes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -111,16 +115,20 @@ public sealed class HackerNewsServiceTests
         })
         .ConfigurePrimaryHttpMessageHandler(() => hn);
 
-        var provider = services.BuildServiceProvider();
-        var service = new HackerNewsService(
-            provider.GetRequiredService<IHttpClientFactory>(),
+        var serviceProvider = services.BuildServiceProvider();
+        var client = new HackerNewsClient(
+            serviceProvider.GetRequiredService<IHttpClientFactory>(),
+            serviceProvider.GetRequiredService<ResiliencePipelineProvider<string>>());
+        var storyProvider = new CachedHackerNewsStoryProvider(
+            client,
             cache ?? new FakeHackerNewsCache(),
             new InMemoryCacheRefreshLock(),
-            provider.GetRequiredService<ResiliencePipelineProvider<string>>(),
+            new HackerNewsStoryMapper(),
             Options.Create(settings ?? new HackerNewsSettings { FetchConcurrency = 4 }),
-            NullLogger<HackerNewsService>.Instance);
+            NullLogger<CachedHackerNewsStoryProvider>.Instance);
+        var service = new HackerNewsService(storyProvider);
 
-        return new ServiceFixture(provider, service);
+        return new ServiceFixture(serviceProvider, service, storyProvider);
     }
 
     private static HackerNewsItem Item(int id, int score)
@@ -138,18 +146,23 @@ public sealed class HackerNewsServiceTests
     private sealed class ServiceFixture : IAsyncDisposable
     {
         private readonly ServiceProvider _provider;
+        private readonly CachedHackerNewsStoryProvider _storyProvider;
 
-        public ServiceFixture(ServiceProvider provider, HackerNewsService service)
+        public ServiceFixture(
+            ServiceProvider provider,
+            HackerNewsService service,
+            CachedHackerNewsStoryProvider storyProvider)
         {
             _provider = provider;
             Service = service;
+            _storyProvider = storyProvider;
         }
 
         public HackerNewsService Service { get; }
 
         public async ValueTask DisposeAsync()
         {
-            Service.Dispose();
+            _storyProvider.Dispose();
             await _provider.DisposeAsync();
         }
     }

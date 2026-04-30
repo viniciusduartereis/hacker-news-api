@@ -1,4 +1,4 @@
-namespace HackerNewsApi.Contracts;
+namespace HackerNewsApi.Features.Stories.Contracts;
 
 /// <summary>
 /// Outbound DTO returned to API callers.

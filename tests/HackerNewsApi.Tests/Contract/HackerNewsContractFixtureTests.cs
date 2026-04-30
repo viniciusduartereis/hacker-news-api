@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FluentAssertions;
-using HackerNewsApi.Contracts;
+using HackerNewsApi.ExternalServices.HackerNews.Contracts;
 
 namespace HackerNewsApi.Tests.Contract;
 

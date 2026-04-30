@@ -1,5 +1,5 @@
-using HackerNewsApi.Contracts;
-using HackerNewsApi.Services;
+using HackerNewsApi.Features.Stories.Contracts;
+using HackerNewsApi.Features.Stories.Services;
 
 namespace HackerNewsApi.Tests.Fakes;
 

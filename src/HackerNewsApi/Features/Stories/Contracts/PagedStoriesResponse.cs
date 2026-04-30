@@ -1,4 +1,4 @@
-namespace HackerNewsApi.Contracts;
+namespace HackerNewsApi.Features.Stories.Contracts;
 
 public sealed record PagedStoriesResponse(
     IReadOnlyList<StoryDto> Items,

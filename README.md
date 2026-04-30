@@ -211,6 +211,35 @@ Cache provider behavior:
 
 ## Design Decisions
 
+### Endpoint contracts and validation
+
+Minimal API endpoints bind route/query values into request classes instead of validating loose primitive parameters in the endpoint body.
+
+Validation is implemented with FluentValidation and registered through dependency injection. Endpoint handlers receive the matching `IValidator<TRequest>`, return the shared validation error response when validation fails, and call the application service only after the request is valid.
+
+Current request validators cover:
+
+| Request | Rules |
+| --- | --- |
+| `GetBestStoriesRequest` | `count` must be between `1` and `500` |
+| `GetPagedStoriesRequest` | `feed` must be supported, `page` must be `>= 1`, and `pageSize` must be between `1` and `500` |
+
+### Service boundaries
+
+The story workflow follows a vertical-slice layout. Feature-specific application code lives under `Features/Stories`, while the HTTP integration with the upstream Hacker News API lives under `ExternalServices/HackerNews`.
+
+The slice is split into small services so the application service does not own HTTP, cache, mapping, warm-up, and orchestration concerns at the same time.
+
+| Component | Responsibility |
+| --- | --- |
+| `HackerNewsService` | Application use cases: best stories, paged feed, ranking, and pagination |
+| `HackerNewsClient` | External HTTP calls to the official Hacker News Firebase API |
+| `CachedHackerNewsStoryProvider` | Feed/story cache lookup, cache population, single-flight protection, and outbound concurrency limits |
+| `HackerNewsStoryMapper` | Mapping raw `HackerNewsItem` responses to public `StoryDto` responses |
+| `HackerNewsCacheWarmer` | Background warm-up orchestration for configured feeds |
+| `HackerNewsSettings` | Slice-specific configuration for base URL, cache TTLs, warm-up, locks, and fetch concurrency |
+| `AddStoriesFeature` | Slice-level dependency injection registration |
+
 ### Distributed cache abstraction
 
 The application uses `IDistributedCache` behind a small `IHackerNewsCache` abstraction. This keeps the service independent from Redis-specific APIs while allowing the runtime cache backend to change through configuration.
@@ -293,21 +322,28 @@ The stories endpoint uses a fixed-window rate limiter: 60 requests per minute pe
 
 ```text
 src/HackerNewsApi/
-├── BackgroundServices/
-│   └── HackerNewsCacheRefreshService.cs
 ├── Caching/
 │   ├── DistributedHackerNewsCache.cs
 │   └── IHackerNewsCache.cs
 ├── Configurations/
+├── ExternalServices/
+│   └── HackerNews/
+│       ├── Contracts/
+│       │   └── HackerNewsItem.cs
+│       ├── HackerNewsClient.cs
+│       └── IHackerNewsClient.cs
 ├── Features/
 │   ├── Health/
 │   └── Stories/
-├── Services/
-│   ├── HackerNewsService.cs
-│   ├── IHackerNewsCacheWarmer.cs
-│   └── IHackerNewsService.cs
-├── Settings/
-│   └── HackerNewsSettings.cs
+│       ├── BackgroundServices/
+│       ├── Contracts/
+│       ├── Mapping/
+│       ├── Providers/
+│       ├── Services/
+│       ├── Settings/
+│       ├── Validators/
+│       ├── StoriesServiceCollectionExtensions.cs
+│       └── Endpoints.cs
 ├── Program.cs
 └── Dockerfile
 
@@ -339,7 +375,7 @@ dotnet restore tests/HackerNewsApi.Tests/HackerNewsApi.Tests.csproj
 dotnet test tests/HackerNewsApi.Tests/HackerNewsApi.Tests.csproj
 ```
 
-The test project includes unit tests, endpoint integration tests, and contract tests against recorded Hacker News API fixtures under `tests/HackerNewsApi.Tests/Fixtures/HackerNews`.
+The test project includes unit tests, endpoint integration tests, validation response checks, and contract tests against recorded Hacker News API fixtures under `tests/HackerNewsApi.Tests/Fixtures/HackerNews`.
 
 Run a local k6 smoke benchmark:
 

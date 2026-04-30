@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
-using HackerNewsApi.BackgroundServices;
-using HackerNewsApi.Services;
+using HackerNewsApi.Features.Stories.BackgroundServices;
+using HackerNewsApi.Features.Stories.Services;
 using HackerNewsApi.Tests.Fakes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -33,28 +33,34 @@ public sealed class StoriesEndpointTests
     }
 
     [Theory]
-    [InlineData("/api/v1/stories/beststories?page=0&pageSize=2")]
-    [InlineData("/api/v1/stories/beststories?page=1&pageSize=0")]
-    [InlineData("/api/v1/stories/beststories?page=1&pageSize=501")]
-    public async Task GetStoriesFeed_WithInvalidPagination_ReturnsBadRequest(string url)
+    [InlineData("/api/v1/stories/beststories?page=0&pageSize=2", "page", "page must be greater than or equal to 1.")]
+    [InlineData("/api/v1/stories/beststories?page=1&pageSize=0", "pageSize", "pageSize must be greater than or equal to 1.")]
+    [InlineData("/api/v1/stories/beststories?page=1&pageSize=501", "pageSize", "pageSize cannot exceed 500.")]
+    public async Task GetStoriesFeed_WithInvalidPagination_ReturnsValidationError(
+        string url,
+        string propertyName,
+        string message)
     {
         await using var factory = new HackerNewsApiFactory();
         var client = factory.CreateClient();
 
         var response = await client.GetAsync(url);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        await AssertValidationErrorAsync(response, propertyName, message);
     }
 
     [Fact]
-    public async Task GetStoriesFeed_WithInvalidFeed_ReturnsBadRequest()
+    public async Task GetStoriesFeed_WithInvalidFeed_ReturnsValidationError()
     {
         await using var factory = new HackerNewsApiFactory();
         var client = factory.CreateClient();
 
         var response = await client.GetAsync("/api/v1/stories/unsupported?page=1&pageSize=2");
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        await AssertValidationErrorAsync(
+            response,
+            "feed",
+            "feed must be one of: best, beststories, top, topstories, new, newstories.");
     }
 
     [Fact]
@@ -71,9 +77,9 @@ public sealed class StoriesEndpointTests
     }
 
     [Theory]
-    [InlineData("/api/v1/stories/0")]
-    [InlineData("/api/v1/stories/501")]
-    public async Task GetLegacyBestStories_WithInvalidCount_ReturnsBadRequest(string url)
+    [InlineData("/api/v1/stories/0", "count must be a positive integer.")]
+    [InlineData("/api/v1/stories/501", "count cannot exceed 500 (maximum returned by the HN best-stories endpoint).")]
+    public async Task GetLegacyBestStories_WithInvalidCount_ReturnsValidationError(string url, string message)
     {
         await using var factory = new HackerNewsApiFactory();
         var client = factory.CreateClient();
@@ -81,6 +87,31 @@ public sealed class StoriesEndpointTests
         var response = await client.GetAsync(url);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        await AssertValidationErrorAsync(response, "count", message);
+    }
+
+    private static async Task AssertValidationErrorAsync(
+        HttpResponseMessage response,
+        string propertyName,
+        string message)
+    {
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = document.RootElement;
+        root.GetProperty("statusCode").GetInt32().Should().Be(400);
+        root.GetProperty("message").GetString().Should().Be("Client Error");
+
+        var error = root.GetProperty("error");
+        error.GetProperty("message").GetString().Should().Be("Validation failed.");
+        error.GetProperty("errorKey").GetString().Should().Be("validation_failed");
+
+        error.GetProperty("errors")
+             .GetProperty(propertyName)
+             .EnumerateArray()
+             .Select(item => item.GetString())
+             .Should()
+             .Contain(message);
     }
 
     private sealed class HackerNewsApiFactory : WebApplicationFactory<Program>

@@ -1,13 +1,11 @@
-using FluentValidation;
 using Scalar.AspNetCore;
 using HackerNewsApi.Features.Health;
 using HackerNewsApi.Features.Stories;
 using HackerNewsApi.Configurations;
-using HackerNewsApi.Settings;
 using HackerNewsApi.IoC;
+using HackerNewsApi.Features.Stories.Settings;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,29 +18,10 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 
 builder.Services.Configure<HackerNewsSettings>(builder.Configuration.GetSection(HackerNewsSettings.SectionName));
 
-var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnectionString");
-if (string.IsNullOrWhiteSpace(redisConnectionString))
-{
-    builder.Services.AddDistributedMemoryCache();
-}
-else
-{
-    builder.Services.AddStackExchangeRedisCache(options =>
-    {
-        var redisOptions = ConfigurationOptions.Parse(redisConnectionString);
-        redisOptions.AbortOnConnectFail = false;
-        redisOptions.ConnectRetry = 3;
-        redisOptions.ConnectTimeout = 3_000;
-        redisOptions.SyncTimeout = 3_000;
-
-        options.ConfigurationOptions = redisOptions;
-        options.InstanceName = "HackerNews:";
-    });
-}
+builder.Services.AddCache(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddOpenApi();
 builder.Services.AddHealthCheck();
 builder.Services.AddVersioning();
@@ -81,5 +60,3 @@ versionedApi.MapStoriesEndpoints();
 app.UseForwardedHeaders();
 
 await app.RunAsync();
-
-public partial class Program;
