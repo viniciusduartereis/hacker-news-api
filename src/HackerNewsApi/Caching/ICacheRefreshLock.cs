@@ -1,4 +1,4 @@
-namespace HackerNewsApi.Features.Stories.Caching;
+namespace HackerNewsApi.Caching;
 
 public interface ICacheRefreshLock
 {

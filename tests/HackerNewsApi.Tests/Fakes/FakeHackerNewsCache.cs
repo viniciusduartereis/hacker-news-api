@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using HackerNewsApi.Caching;
+using HackerNewsApi.Features.Stories.Caching;
 
 namespace HackerNewsApi.Tests.Fakes;
 

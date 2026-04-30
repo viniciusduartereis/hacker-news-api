@@ -6,28 +6,17 @@ using HackerNewsApi.Features.Stories.Mapping;
 using HackerNewsApi.Features.Stories.Providers;
 using HackerNewsApi.Features.Stories.Services;
 using HackerNewsApi.Features.Stories.Validators;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HackerNewsApi.Features.Stories;
 
 public static class StoriesServiceCollectionExtensions
 {
-    public static IServiceCollection AddStoriesFeature(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddStoriesFeature(this IServiceCollection services)
     {
         services.AddValidatorsFromAssemblyContaining<GetBestStoriesRequestValidator>();
 
-        if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("RedisConnectionString")))
-        {
-            services.AddSingleton<ICacheRefreshLock, InMemoryCacheRefreshLock>();
-        }
-        else
-        {
-            services.AddSingleton<ICacheRefreshLock, RedisCacheRefreshLock>();
-        }
-
+        services.AddSingleton<IHackerNewsCache, DistributedHackerNewsCache>();
         services.AddSingleton<IHackerNewsStoryMapper, HackerNewsStoryMapper>();
         services.AddScoped<IHackerNewsClient, HackerNewsClient>();
         services.AddScoped<IHackerNewsStoryProvider, CachedHackerNewsStoryProvider>();

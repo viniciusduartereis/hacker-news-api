@@ -235,7 +235,7 @@ The slice is split into small services so the application service does not own H
 | `HackerNewsService` | Application use cases: best stories, paged feed, ranking, and pagination |
 | `HackerNewsClient` | External HTTP calls to the official Hacker News Firebase API |
 | `CachedHackerNewsStoryProvider` | Feed/story cache lookup, cache population, single-flight protection, and outbound concurrency limits |
-| `ICacheRefreshLock` / implementations | Slice-specific refresh and per-story single-flight locking |
+| `IHackerNewsCache` / `DistributedHackerNewsCache` | Slice-specific cache abstraction for Hacker News feed and story data |
 | `HackerNewsStoryMapper` | Mapping raw `HackerNewsItem` responses to public `StoryDto` responses |
 | `HackerNewsCacheWarmer` | Background warm-up orchestration for configured feeds |
 | `HackerNewsSettings` | Slice-specific configuration for base URL, cache TTLs, warm-up, locks, and fetch concurrency |
@@ -324,8 +324,9 @@ The stories endpoint uses a fixed-window rate limiter: 60 requests per minute pe
 ```text
 src/HackerNewsApi/
 ├── Caching/
-│   ├── DistributedHackerNewsCache.cs
-│   └── IHackerNewsCache.cs
+│   ├── ICacheRefreshLock.cs
+│   ├── InMemoryCacheRefreshLock.cs
+│   └── RedisCacheRefreshLock.cs
 ├── Configurations/
 ├── ExternalServices/
 │   └── HackerNews/

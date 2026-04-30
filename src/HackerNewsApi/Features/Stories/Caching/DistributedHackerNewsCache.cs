@@ -5,7 +5,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Polly;
 using Polly.Registry;
 
-namespace HackerNewsApi.Caching;
+namespace HackerNewsApi.Features.Stories.Caching;
 
 public sealed class DistributedHackerNewsCache : IHackerNewsCache
 {
