@@ -76,6 +76,18 @@ ConnectionStrings__RedisConnectionString=localhost:6379 \
 dotnet run --project src/HackerNewsApi/HackerNewsApi.csproj
 ```
 
+You do not need to edit `appsettings.json` for local Redis. The example above uses an
+environment variable override for the current process. If you prefer a file-based
+local setting, set the same value in `src/HackerNewsApi/appsettings.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "RedisConnectionString": "localhost:6379"
+  }
+}
+```
+
 Scalar/OpenAPI is available in Development mode at:
 
 ```text
@@ -182,6 +194,11 @@ Returns a lightweight health response:
 ## Configuration
 
 Configuration lives under `AppSettings`, `HackerNews` and `ConnectionStrings`.
+The checked-in `appsettings.json` contains safe defaults, including an empty Redis
+connection string so the app runs with in-process memory cache by default.
+
+Prefer environment variables or Docker Compose variables for runtime overrides.
+For local-only runs, editing `src/HackerNewsApi/appsettings.json` is also supported.
 
 ```json
 {
