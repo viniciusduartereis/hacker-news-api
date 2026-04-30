@@ -16,5 +16,6 @@ publish/
 Thumbs.db
 
 ## Secrets
+appsettings.Development.json
 appsettings.*.local.json
 secrets.json

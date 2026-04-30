@@ -53,6 +53,7 @@ if (builder.Configuration.GetValue("AppSettings:EnableHttpsRedirection", true))
 }
 
 app.MapHealthEndpoints();
+app.SetupHealthCheck();
 
 var versionedApi = app.SetupVersioning();
 versionedApi.MapStoriesEndpoints();

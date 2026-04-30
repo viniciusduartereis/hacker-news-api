@@ -63,7 +63,7 @@ TELEMETRY_EXPORTER=otlp
 
 ### .NET CLI
 
-Running directly with `dotnet run` uses `IDistributedCache` backed by in-process memory unless a Redis connection string is configured.
+Running directly with `dotnet run` uses `IDistributedCache` backed by in-process memory by default.
 
 ```bash
 dotnet run --project src/HackerNewsApi/HackerNewsApi.csproj
@@ -181,10 +181,13 @@ Returns a lightweight health response:
 
 ## Configuration
 
-Configuration lives under `HackerNews` and `ConnectionStrings`.
+Configuration lives under `AppSettings`, `HackerNews` and `ConnectionStrings`.
 
 ```json
 {
+  "AppSettings": {
+    "EnableHttpsRedirection": true
+  },
   "ConnectionStrings": {
     "RedisConnectionString": ""
   },
@@ -249,7 +252,7 @@ Cache backend failures are treated as cache misses and logged, so a Redis outage
 
 Redis itself is configured with `AbortOnConnectFail=false`, three connection retries, and 3-second connect/sync timeouts to avoid long request stalls when the cache backend is degraded.
 
-Redis is also part of readiness health checks when configured. `/readyz` and `/health/ready` report unhealthy if Redis is unreachable, while liveness remains independent through `/healthz` and `/health/live`.
+Redis is also part of readiness health checks. `/readyz` and `/health/ready` report unhealthy if a configured Redis instance is unreachable, while liveness remains independent through `/healthz` and `/health/live`. `/api/health` remains available as a lightweight application health response.
 
 ### Resilience pipelines
 
